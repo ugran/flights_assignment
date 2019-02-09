@@ -22,7 +22,7 @@ class FlightsController < ApplicationController
             duration = ((DateTime.parse(f[:arrivalTime])-DateTime.parse(f[:departureTime])) * 24 * 60).to_i
             is_preffered_carrier = 0.9
             if preffered_carriers.present?
-                if preffered_carriers.split(',').include? f[:carrier]
+                if preffered_carriers.split(',').include? Airline.find(f[:carrier].id).abbreviation
                     is_preffered_carrier = 1
                 end
             end
