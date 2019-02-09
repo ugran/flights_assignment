@@ -1,5 +1,6 @@
 class FlightsController < ApplicationController
     require 'http'
+    require 'faker'
     
     def index
         flights = JSON.parse(HTTP.get('https://gist.githubusercontent.com/bgdavidx/132a9e3b9c70897bc07cfa5ca25747be/raw/8dbbe1db38087fad4a8c8ade48e741d6fad8c872/gistfile1.txt'), symbolize_names: true)
@@ -48,11 +49,13 @@ class FlightsController < ApplicationController
     def cheapest_flights_from
         origin_airport = Airport.find_by(id: params[:origin].to_i)
         if origin_airport.present?
-            flights = origin_airport.outgoing_flights
-            list_of_cheapest_flights = []
+            flights = Flight.where(origin_id: origin_airport.id)
+            @list_of_cheapest_flights = []
             Airport.all.each do |a|
                 cheapest_flight = flights.where(destination_id: a.id).order(:price).first
-                list_of_cheapest_flights.push({ airport_name: a.name, airport_address: a.address, airline_name: cheapest_flight.airline.name, airline_abbreviation: cheapest_flight.airline.abbreviation})
+                if cheapest_flight.present?
+                    @list_of_cheapest_flights.push({ airport_name: a.name, airport_address: a.address, airline_name: cheapest_flight.airline.name, airline_abbreviation: cheapest_flight.airline.abbreviation})
+                end
             end
 
             render :json => @list_of_cheapest_flights
@@ -70,16 +73,64 @@ class FlightsController < ApplicationController
                 flight_speed += f.distance/f.duration
                 number_of_flights += 1
             end
-            average = flight_speed/number_of_flights
-            airlines.push({airline_id: t.id, average_flight_speed: average})
+            if number_of_flights > 0
+                average = flight_speed/number_of_flights
+                airlines.push({airline_id: t.id, average_flight_speed: average})
+            end
         end
-        airline = airlines.max_by{|a| a.average_flight_speed}
+        airline = airlines.max_by{|a| a[:average_flight_speed]}
 
         if airline.present?
-            @airline = Airline.find_by(id: airline.airline_id)
+            @airline = Airline.find_by(id: airline[:airline_id])
+            render :json => @airline
+        else
+            render :json => { 'error': 'no_airlines_in_db'}
+        end
+    end
+
+    def reseed_with_faker
+        Airport.delete_all
+        Airline.delete_all
+        Flight.delete_all
+
+        50.times do 
+            name = Faker::Company.unique.name
+            abbreviation = name[0,3].upcase
+            Airline.create(name: name, abbreviation: abbreviation)
         end
 
-        render :json => { 'error': 'no_airlines_in_db'}
+        300.times do
+            name = Faker::Address.unique.city
+            code = name[0,3].upcase
+            address = Faker::Address.unique.street_address
+            Airport.create(name: name, code: code, address: address)
+        end
+
+        500.times do
+            number = Faker::Code.unique.nric
+            offset = rand(Airport.count)
+            offset2 = rand(Airport.count)
+            origin_airport = Airport.offset(offset).first
+            destination_airport = Airport.offset(offset2).first
+            offset3 = rand(Airline.count)
+            airline = Airline.offset(offset3).first.id
+            prng = Random.new
+            price = prng.rand(100..600)
+            duration = prng.rand(45..600)
+            distance = prng.rand(200..5000)
+            puts number, origin_airport, destination_airport, airline, price, duration, distance
+            Flight.create(
+                number: number,
+                origin: origin_airport,
+                destination: destination_airport,
+                airline_id: airline,
+                price: price,
+                duration: duration,
+                distance: distance
+            )
+        end
+
+        render :json => { 'result': 'Finished reseeding'}
     end
 
 end

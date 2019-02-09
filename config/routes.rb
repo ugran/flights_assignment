@@ -5,4 +5,6 @@ Rails.application.routes.draw do
   get 'api/v1/fastest_flight_between' => "flights#fastest_flight_between"
   get 'api/v1/fastest_airline' => 'flights#fastest_airline'
   get 'api/v1/cheapest_flights_from' => 'flights#cheapest_flights_from'
+  get 'api/v1/reseed_with_faker' => 'flights#reseed_with_faker'
+
 end
