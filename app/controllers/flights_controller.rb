@@ -106,7 +106,7 @@ class FlightsController < ApplicationController
             Airport.create(name: name, code: code, address: address)
         end
 
-        500.times do
+        1000.times do
             number = Faker::Code.unique.nric
             offset = rand(Airport.count)
             offset2 = rand(Airport.count)

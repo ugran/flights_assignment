@@ -1,24 +1,15 @@
-# README
+After instaling ruby and cloning > bundle install > rails db:migrate
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+to start the project > rails s
 
-Things you may want to cover:
+Then to seed database 50 airlines, 300 airports, and 1000 flights go to localhost:3000/api/v1/reseed_with_faker
 
-* Ruby version
+API Documentation:
 
-* System dependencies
+localhost:3000/api/v1/flights?preffered_duration={integer for minutes}&preffered_timerange=22.02.2018 12:30:10-28.02.2018 12:30:10&preffered_carriers=FR,SW,AA
 
-* Configuration
+localhost:3000/api/v1/fastest_flight_between?origin={origin_airport_id}&destination={destination_airport_id}
 
-* Database creation
+localhost:3000/api/v1/cheapest_flights_from?origin={origin_airport_id}
 
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+localhost:3000/api/v1/fastest_airline
