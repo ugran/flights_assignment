@@ -13,7 +13,10 @@ class FlightsController < ApplicationController
         end
 
         if preffered_timerange.present? 
-            flights = flights.select { |f| preffered_timerange.first < DateTime.parse(f[:departureTime]) && preffered_timerange.second > DateTime.parse(f[:arrivalTime]) }
+            puts preffered_timerange.split('-')
+            preffered_start = DateTime.parse(preffered_timerange.split('-').first)
+            preffered_end = DateTime.parse(preffered_timerange.split('-').second)
+            flights = flights.select { |f| preffered_start < DateTime.parse(f[:departureTime]) && preffered_end> DateTime.parse(f[:arrivalTime]) }
         end
 
         flights = flights.each{ |f| f[:weather] = rand}
@@ -53,12 +56,14 @@ class FlightsController < ApplicationController
             end
 
             render :json => @list_of_cheapest_flights
+        else
+            render :json => {'error': 'no_such_origin'}
         end
     end
 
     def fastest_airline
         airlines = []
-        Airline.each do |t|
+        Airline.all.each do |t|
             number_of_flights = 0
             flight_speed = 0
             Flight.where(airline_id: t.id).each do |f|
@@ -70,9 +75,11 @@ class FlightsController < ApplicationController
         end
         airline = airlines.max_by{|a| a.average_flight_speed}
 
-        @airline = Airline.find(airline.airline_id)
+        if airline.present?
+            @airline = Airline.find_by(id: airline.airline_id)
+        end
 
-        render :json => @airline
+        render :json => { 'error': 'no_airlines_in_db'}
     end
 
 end
